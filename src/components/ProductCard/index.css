@@ -1,4 +1,6 @@
-/* TODO: Add your CSS here */
+a {
+  text-decoration: none;
+}
 
 .product-item {
   display: flex;
