@@ -1,8 +1,10 @@
 import {Component} from 'react'
-import {AiOutlinePlusSquare, AiOutlineMinusSquare} from 'react-icons/ai'
+// import {Redirect} from 'react-router-dom'
+import {BsPlusSquare, BsDashSquare} from 'react-icons/bs'
 import Cookies from 'js-cookie'
 import Loader from 'react-loader-spinner'
 import 'react-loader-spinner/dist/loader/css/react-spinner-loader.css'
+import ProductCard from '../ProductCard'
 import Header from '../Header'
 
 import './index.css'
@@ -15,7 +17,12 @@ const status = {
 }
 
 class ProductItemDetails extends Component {
-  state = {apiStatus: status.initial, productDetailsData: {}, orderCount: 1}
+  state = {
+    apiStatus: status.initial,
+    productDetailsData: {},
+    similarProductsData: [],
+    orderCount: 1,
+  }
 
   componentDidMount() {
     this.getProductItemDetails()
@@ -53,11 +60,25 @@ class ProductItemDetails extends Component {
         rating: data.rating,
         similarProducts: data.similar_products,
         title: data.title,
-        totalReviews: data.totalReviews,
+        totalReviews: data.total_reviews,
       }
+
+      const similarProducts = updatedData.similarProducts.map(item => ({
+        availability: item.availability,
+        brand: item.brand,
+        description: item.description,
+        id: item.id,
+        imageUrl: item.image_url,
+        price: item.price,
+        rating: item.rating,
+        style: item.style,
+        title: item.title,
+        totalReviews: item.total_reviews,
+      }))
 
       this.setState({
         productDetailsData: updatedData,
+        similarProductsData: similarProducts,
         apiStatus: status.success,
       })
     } else {
@@ -71,14 +92,19 @@ class ProductItemDetails extends Component {
 
   decreaseOrderCount = () => {
     this.setState(prevState => ({
-      orderCount: prevState.orderCount > 0 ? prevState.orderCount - 1 : 0,
+      orderCount: prevState.orderCount > 1 ? prevState.orderCount - 1 : 1,
     }))
   }
 
   addToCart = () => {}
 
+  redirectToProductsRoute = () => {
+    const {history} = this.props
+    history.replace('/products')
+  }
+
   renderLoadingView = () => (
-    <div className="products-loader-container">
+    <div testid="loader" className="products-loader-container">
       <Loader type="ThreeDots" color="#0b69ff" height="50" width="50" />
     </div>
   )
@@ -91,18 +117,27 @@ class ProductItemDetails extends Component {
         className="product-failure-img"
       />
       <h1 className="product-failure-heading-text">Product Not Found</h1>
-      <button type="button" className="continue-shopping">
+      <button
+        type="button"
+        onClick={this.redirectToProductsRoute}
+        className="continue-shopping"
+      >
         Continue Shopping
       </button>
     </div>
   )
 
   renderSimilarProducts = () => {
-    console.log()
+    const {similarProductsData} = this.state
 
     return (
       <div className="similar-products-container">
         <h1>Similar Products</h1>
+        <ul className="similar-items">
+          {similarProductsData.map(item => (
+            <ProductCard productData={item} key={item.id} />
+          ))}
+        </ul>
       </div>
     )
   }
@@ -117,60 +152,66 @@ class ProductItemDetails extends Component {
       totalReviews,
       description,
       imageUrl,
-      //   similarProducts,
+      similarProducts,
       availability,
     } = productDetailsData
+    // console.log(productDetailsData)
 
     return (
-      <div className="product-item-container">
-        <img src={imageUrl} alt="title" className="product-image" />
-        <div className="item-details">
-          <h1 className="title">{title}</h1>
-          <p className="price">Rs {price}/-</p>
-          <div className="rating-review-container">
-            <div className="ratings">
-              <p className="rating">{rating}</p>
-              <img
-                src="https://assets.ccbp.in/frontend/react-js/star-img.png"
-                alt="star"
-                className="star"
-              />
+      <>
+        <div className="product-item-container">
+          <img src={imageUrl} alt="product" className="product-image" />
+          <div className="item-details">
+            <h1 className="product-title">{title}</h1>
+            <p className="product-price">Rs {price}/-</p>
+            <div className="product-rating-review-container">
+              <div className="product-ratings">
+                <p className="product-rating">{rating}</p>
+                <img
+                  src="https://assets.ccbp.in/frontend/react-js/star-img.png"
+                  alt="star"
+                  className="star"
+                />
+              </div>
+              <p className="reviews">
+                {totalReviews === undefined ? 'No Reviews' : totalReviews}{' '}
+                Reviews
+              </p>
             </div>
-            <p className="reviews">
-              {totalReviews !== undefined ? totalReviews : 'No Reviews'}
-            </p>
-          </div>
-          <p className="description">{description}</p>
-          <p className="availability">Available: {availability}</p>
-          <p className="brand">Brand: {brand}</p>
-          <hr />
-          <div className="order-count-container">
+            <p className="description">{description}</p>
+            <p className="availability">Available: {availability}</p>
+            <p className="brand">Brand: {brand}</p>
+            <hr />
+            <div className="order-count-container">
+              <button
+                type="button"
+                testid="minus"
+                onClick={this.decreaseOrderCount}
+                className="plus-minus-button"
+              >
+                <BsDashSquare className="plus-minus" />
+              </button>
+              <p className="order-count"> {orderCount} </p>
+              <button
+                type="button"
+                testid="plus"
+                onClick={this.increaseOrderCount}
+                className="plus-minus-button"
+              >
+                <BsPlusSquare className="plus-minus" />
+              </button>
+            </div>
             <button
               type="button"
-              onClick={this.decreaseOrderCount}
-              className="plus-minus-button"
+              onClick={this.addToCart}
+              className="add-cart-btn"
             >
-              <AiOutlineMinusSquare className="plus-minus" />
-            </button>
-            <span className="order-count"> {orderCount} </span>
-            <button
-              type="button"
-              onClick={this.increaseOrderCount}
-              className="plus-minus-button"
-            >
-              <AiOutlinePlusSquare className="plus-minus" />
+              ADD TO CART
             </button>
           </div>
-          <button
-            type="button"
-            onClick={this.addToCart}
-            className="add-cart-btn"
-          >
-            ADD TO CART
-          </button>
         </div>
-        {this.renderSimilarProducts()}
-      </div>
+        {this.renderSimilarProducts(similarProducts)}
+      </>
     )
   }
 

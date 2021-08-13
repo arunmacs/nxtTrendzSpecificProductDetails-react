@@ -4,12 +4,14 @@ import './index.css'
 
 const ProductCard = props => {
   const {productData} = props
+  console.log(productData)
+
   const {title, brand, imageUrl, rating, price, id} = productData
 
   return (
     <Link to={`/products/${id}`}>
       <li className="product-item">
-        <img src={imageUrl} alt="product" className="thumbnail" />
+        <img src={imageUrl} alt="similar product" className="thumbnail" />
         <h1 className="title">{title}</h1>
         <p className="brand">by {brand}</p>
         <div className="product-details">
